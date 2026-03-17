@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEE Energy Crisis — Desk Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root,[data-theme="light"]{
+  --bg:#f7f6f2;--surface:#f9f8f5;--surface2:#fbfbf9;--offset:#edeae5;--offset2:#e6e4df;
+  --border:#d4d1ca;--divider:#dcd9d5;
+  --text:#28251d;--muted:#7a7974;--faint:#bab9b4;
+  --primary:#01696f;--primary-hi:#cedcd8;
+  --warn:#964219;--warn-hi:#ddcfc6;
+  --err:#a12c7b;--err-hi:#e0ced7;
+  --orange:#da7101;--orange-hi:#e7d7c4;
+  --gold:#d19900;--gold-hi:#e9e0c6;
+  --success:#437a22;--success-hi:#d4dfcc;
+  --blue:#006494;--blue-hi:#c6d8e4;
+  --purple:#7a39bb;
+  --shadow-sm:0 1px 2px rgba(40,37,29,.06);
+  --shadow-md:0 4px 12px rgba(40,37,29,.08);
+  --r-sm:.375rem;--r-md:.5rem;--r-lg:.75rem;--r-xl:1rem;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"]{
+  --bg:#0f0e0c;--surface:#141312;--surface2:#1a1917;--offset:#1d1c1a;--offset2:#222120;
+  --border:#2e2d2b;--divider:#252422;
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#4f98a3;--primary-hi:#1e3335;
+  --warn:#bb653b;--warn-hi:#3a2e28;
+  --err:#d163a7;--err-hi:#3a2535;
+  --orange:#fdab43;--orange-hi:#3a2e1e;
+  --gold:#e8af34;--gold-hi:#352d14;
+  --success:#6daa45;--success-hi:#1e2e14;
+  --blue:#5591c7;--blue-hi:#1a2a35;
+  --purple:#a86fdf;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:0 4px 12px rgba(0,0,0,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100dvh}
+.header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:52px;gap:1rem}
+.logo{display:flex;align-items:center;gap:.75rem;text-decoration:none}
+.logo-text{font-size:13px;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.2}
+.logo-sub{font-size:11px;color:var(--muted);font-weight:400}
+.header-meta{display:flex;align-items:center;gap:1rem}
+.badge-live{background:#a13544;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:var(--r-sm);letter-spacing:.05em;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.header-date{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.theme-toggle{background:var(--offset);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s}
+.theme-toggle:hover{color:var(--text);background:var(--offset2)}
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.tab{padding:.6rem 1rem;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.18s;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.page{display:none;padding:1.5rem;max-width:1440px;margin:0 auto;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem;margin-bottom:1.5rem}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:.875rem 1rem;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.up::before{background:var(--success)}.kpi.dn::before{background:var(--err)}.kpi.warn::before{background:var(--orange)}.kpi.neu::before{background:var(--primary)}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem}
+.kpi-value{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1}
+.kpi-delta{font-size:11px;font-weight:500;margin-top:.3rem}
+.kpi-delta.up{color:var(--success)}.kpi-delta.dn{color:var(--err)}.kpi-delta.warn{color:var(--orange)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.grid-21{display:grid;grid-template-columns:2fr 1fr;gap:1rem}
+@media(max-width:900px){.grid-2,.grid-3,.grid-21{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.25rem;box-shadow:var(--shadow-sm)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem}
+.card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.card-tag{font-size:10px;padding:2px 7px;border-radius:var(--r-sm);font-weight:600;letter-spacing:.04em}
+.tag-energy{background:var(--orange-hi);color:var(--orange)}.tag-macro{background:var(--primary-hi);color:var(--primary)}
+.tag-equity{background:var(--blue-hi);color:var(--blue)}.tag-risk{background:var(--err-hi);color:var(--err)}
+.tag-policy{background:var(--gold-hi);color:var(--gold)}
+.section-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--divider)}
+.chart-wrap{position:relative;width:100%}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{padding:.5rem .75rem;text-align:left;color:var(--muted);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--divider)}
+.data-table td{padding:.5rem .75rem;border-bottom:1px solid var(--divider);color:var(--text)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--offset)}
+.mono{font-family:var(--mono);font-size:11px}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:100px;font-size:10px;font-weight:600}
+.pill.bull{background:var(--success-hi);color:var(--success)}.pill.bear{background:var(--err-hi);color:var(--err)}
+.pill.neu{background:var(--primary-hi);color:var(--primary)}.pill.warn{background:var(--warn-hi);color:var(--warn)}
+.pill.hot{background:var(--orange-hi);color:var(--orange)}
+.storage-bars{display:flex;flex-direction:column;gap:.625rem}
+.stor-row{display:flex;align-items:center;gap:.75rem}
+.stor-label{font-size:11px;width:90px;text-align:right;color:var(--text);flex-shrink:0;font-weight:500}
+.stor-bar-bg{flex:1;height:16px;background:var(--offset2);border-radius:100px;overflow:hidden;position:relative}
+.stor-bar-fill{height:100%;border-radius:100px;position:relative}
+.stor-bar-fill::after{content:attr(data-val);position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:700;color:#fff;font-family:var(--mono)}
+.stor-threshold{position:absolute;left:15%;top:0;bottom:0;width:1px;background:rgba(255,80,80,.8);z-index:1}
+.stor-val{font-size:11px;font-family:var(--mono);color:var(--muted);width:36px;text-align:right;flex-shrink:0}
+.stor-status{font-size:9px;font-weight:700;width:56px;flex-shrink:0;text-align:left}
+.tx-chain{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:.5rem 0}
+.tx-node{flex:1;min-width:108px;background:var(--offset);border:1px solid var(--border);border-radius:var(--r-lg);padding:.75rem .625rem;text-align:center;position:relative}
+.tx-icon{font-size:20px;margin-bottom:.3rem;display:block}
+.tx-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text);line-height:1.3}
+.tx-sub{font-size:9px;color:var(--muted);margin-top:.25rem;line-height:1.3}
+.tx-arrow{display:flex;align-items:center;padding:0 .2rem;color:var(--muted);flex-shrink:0}
+.tx-arrow svg{width:16px;height:16px}
+.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:760px){.scenario-grid{grid-template-columns:1fr}}
+.scenario-card{border-radius:var(--r-xl);padding:1.25rem;border:1px solid}
+.sc-base{background:var(--success-hi);border-color:var(--success);color:var(--success)}
+.sc-stage{background:var(--warn-hi);border-color:var(--warn);color:var(--warn)}
+.sc-sys{background:var(--err-hi);border-color:var(--err);color:var(--err)}
+.scenario-card h3{font-size:13px;font-weight:700;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.05em}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-top:1px solid currentColor;font-size:11px;opacity:.7}
+.sc-row:first-of-type{border-top:none;margin-top:.5rem;opacity:1;font-size:12px}
+.sc-metric{font-weight:600;font-family:var(--mono)}
+.heuristic-list{display:flex;flex-direction:column;gap:.5rem}
+.heuristic{display:flex;align-items:flex-start;gap:.75rem;padding:.625rem;background:var(--offset);border-radius:var(--r-lg);border:1px solid var(--divider)}
+.h-num{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--primary);line-height:1;flex-shrink:0;width:20px}
+.h-text{font-size:12px;color:var(--text);line-height:1.5}
+.h-text strong{color:var(--text);font-weight:600}
+.heat-matrix{overflow-x:auto}
+.heat-table{border-collapse:collapse;font-size:11px;width:100%}
+.heat-table th{padding:.4rem .6rem;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;text-align:center}
+.heat-table th.country{text-align:left}
+.heat-table td{padding:.4rem .6rem;text-align:center;font-family:var(--mono);font-size:11px;font-weight:500;border:1px solid var(--divider)}
+.heat-table td.country{text-align:left;font-family:var(--font);font-weight:600;color:var(--text);font-size:11px}
+.weight-visual{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.75rem}
+.wv-item{display:flex;align-items:center;gap:.4rem;padding:.3rem .6rem;background:var(--offset);border-radius:var(--r-md);border:1px solid var(--divider)}
+.wv-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.wv-name{font-size:11px;font-weight:500;color:var(--text)}
+.wv-pct{font-size:10px;font-family:var(--mono);color:var(--muted)}
+.sm-table{border-collapse:collapse;font-size:11px;width:100%}
+.sm-table th{padding:.45rem .6rem;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--divider);font-weight:600;white-space:nowrap}
+.sm-table td{padding:.45rem .6rem;border-bottom:1px solid var(--divider);vertical-align:middle}
+.sm-table tr:last-child td{border-bottom:none}
+.sm-table tr:hover td{background:var(--offset)}
+.dot-5{display:inline-flex;gap:2px}
+.dot-5 span{width:8px;height:8px;border-radius:50%;background:var(--divider)}
+.dot-5 span.on-err{background:var(--err)}.dot-5 span.on-warn{background:var(--orange)}.dot-5 span.on-gold{background:var(--gold)}.dot-5 span.on-ok{background:var(--success)}
+.watch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem}
+.watch-item{background:var(--offset);border:1px solid var(--divider);border-radius:var(--r-lg);padding:.875rem;border-left:3px solid}
+.watch-item.red{border-left-color:var(--err)}.watch-item.orange{border-left-color:var(--orange)}.watch-item.amber{border-left-color:var(--gold)}.watch-item.green{border-left-color:var(--success)}
+.watch-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:.3rem}
+.watch-desc{font-size:10px;color:var(--muted);line-height:1.4}
+.watch-date{font-size:9px;font-family:var(--mono);color:var(--faint);margin-top:.4rem}
+.mindmap-wrap{width:100%;overflow-x:auto}
+.feedstock-wrap{overflow-x:auto}
+.footnote{font-size:10px;color:var(--faint);margin-top:.75rem;font-style:italic}
+.divider-line{border:none;border-top:1px solid var(--divider);margin:.75rem 0}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="28" rx="6" fill="#01696f"/>
+      <path d="M7 14C7 10.134 10.134 7 14 7V10C11.791 10 10 11.791 10 14C10 16.209 11.791 18 14 18V21C10.134 21 7 17.866 7 14Z" fill="white" opacity=".9"/>
+      <rect x="15" y="7" width="6" height="6" rx="1.5" fill="white" opacity=".7"/>
+      <rect x="15" y="15" width="6" height="6" rx="1.5" fill="white" opacity=".5"/>
+    </svg>
+    <div>
+      <div class="logo-text">CEE &amp; AT Desk Intelligence</div>
+      <div class="logo-sub">Energy Crisis · Inflation · Listed Equities</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="badge-live">LIVE</span>
+    <span class="header-date">17 MAR 2026 · 20:10 CET</span>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="nav-tabs" role="tablist">
+  <button class="tab active" onclick="showPage('overview',this)">📊 Overview</button>
+  <button class="tab" onclick="showPage('energy',this)">⚡ Energy &amp; Storage</button>
+  <button class="tab" onclick="showPage('inflation',this)">📈 Inflation &amp; Policy</button>
+  <button class="tab" onclick="showPage('transmission',this)">🔗 Transmission Map</button>
+  <button class="tab" onclick="showPage('feedstock',this)">🏭 Feedstock &amp; Industry</button>
+  <button class="tab" onclick="showPage('equities',this)">📋 CEE Equities</button>
+  <button class="tab" onclick="showPage('scenarios',this)">🎯 Scenarios</button>
+  <button class="tab" onclick="showPage('watch',this)">🚨 Watch List</button>
+</nav>
+
+<!-- ═══════ PAGE: OVERVIEW ═══════ -->
+<div class="page active" id="page-overview">
+  <div class="kpi-strip">
+    <div class="kpi warn"><div class="kpi-label">TTF Gas (EUR/MWh)</div><div class="kpi-value">52.05</div><div class="kpi-delta warn">▲ +65.3% past month · +28.4% YoY</div></div>
+    <div class="kpi dn"><div class="kpi-label">EU Avg Storage</div><div class="kpi-value">~29%</div><div class="kpi-delta dn">▼ vs 58% 10yr avg; lowest since 2022</div></div>
+    <div class="kpi dn"><div class="kpi-label">Germany Storage</div><div class="kpi-value">20.6%</div><div class="kpi-delta dn">▼ 35% prob of breaching 15% threshold</div></div>
+    <div class="kpi dn"><div class="kpi-label">Austria HICP (2025)</div><div class="kpi-value">3.6%</div><div class="kpi-delta dn">▲ Highest since 1993 · Nov: 4.0%</div></div>
+    <div class="kpi dn"><div class="kpi-label">Hungary CPI Fcst</div><div class="kpi-value">4.5%</div><div class="kpi-delta dn">▲ YE 2026 · gas liberalisation risk</div></div>
+    <div class="kpi neu"><div class="kpi-label">ECB Deposit Rate</div><div class="kpi-value">2.00%</div><div class="kpi-delta warn">~ Hold · mkts pricing +40bps by Dec</div></div>
+    <div class="kpi up"><div class="kpi-label">BUX 2025 Return</div><div class="kpi-value">+40%</div><div class="kpi-delta up">▲ Global top performer in 2025</div></div>
+    <div class="kpi warn"><div class="kpi-label">CEE8 Infl 2026F</div><div class="kpi-value">3.5%</div><div class="kpi-delta warn">▲ Revised from 3.2% (Erste, 12 Mar)</div></div>
+  </div>
+
+  <div class="grid-21" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">TTF Natural Gas — Price History 2021–2026</span><span class="card-tag tag-energy">ENERGY</span></div>
+      <div class="chart-wrap" style="height:230px"><canvas id="ttfChart"></canvas></div>
+      <p class="footnote">Sources: TradingEconomics (Mar 17 2026), Investing.com historical, ICE</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Immediate Risk Dashboard</span><span class="card-tag tag-risk">ALERTS</span></div>
+      <div class="heuristic-list">
+        <div class="heuristic"><span class="h-num" style="color:#d163a7">!</span><span class="h-text"><strong>Iran conflict shock</strong> — Hormuz risk, LNG rerouted. +60% oil in 2 weeks. TTF surged 50% Feb 27 – Mar 2.</span></div>
+        <div class="heuristic"><span class="h-num" style="color:#fdab43">!</span><span class="h-text"><strong>Storage emergency</strong> — DE at 20.6%, NL below 15% alarm. Refill to 80% requires 60bcm injection.</span></div>
+        <div class="heuristic"><span class="h-num" style="color:#fdab43">!</span><span class="h-text"><strong>Inverted forward curve</strong> — Summer 26 > Winter 26. No merchant incentive to inject. EC intervention risk.</span></div>
+        <div class="heuristic"><span class="h-num" style="color:#e8af34">~</span><span class="h-text"><strong>Policy divergence</strong> — Hungary &amp; Poland cutting; ECB hold but mkts pricing 40bps hike. FX vol ahead.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">EU Gas Storage Fill % by Country (Mar 2026)</span><span class="card-tag tag-energy">STORAGE</span></div>
+      <div class="storage-bars">
+        <div class="stor-row"><span class="stor-label">Germany</span><div class="stor-bar-bg"><div class="stor-threshold"></div><div class="stor-bar-fill" style="width:20.6%;background:var(--err)" data-val="20.6%"></div></div><span class="stor-val mono">20.6%</span><span class="stor-status" style="color:var(--err)">⚠ CRIT</span></div>
+        <div class="stor-row"><span class="stor-label">Netherlands</span><div class="stor-bar-bg"><div class="stor-threshold"></div><div class="stor-bar-fill" style="width:10.7%;background:var(--err)" data-val="10.7%"></div></div><span class="stor-val mono">10.7%</span><span class="stor-status" style="color:var(--err)">BREACH</span></div>
+        <div class="stor-row"><span class="stor-label">Austria</span><div class="stor-bar-bg"><div class="stor-threshold"></div><div class="stor-bar-fill" style="width:36.2%;background:var(--gold)" data-val="36.2%"></div></div><span class="stor-val mono">36.2%</span><span class="stor-status" style="color:var(--gold)">MANAGED</span></div>
+        <div class="stor-row"><span class="stor-label">Italy</span><div class="stor-bar-bg"><div class="stor-threshold"></div><div class="stor-bar-fill" style="width:47.6%;background:var(--success)" data-val="47.6%"></div></div><span class="stor-val mono">47.6%</span><span class="stor-status" style="color:var(--success)">STABLE</span></div>
+        <div class="stor-row"><span class="stor-label">EU Average</span><div class="stor-bar-bg"><div class="stor-threshold"></div><div class="stor-bar-fill" style="width:29%;background:var(--warn)" data-val="~29%"></div></div><span class="stor-val mono">~29%</span><span class="stor-status" style="color:var(--warn)">LOW</span></div>
+        <div class="stor-row"><span class="stor-label">10yr Avg</span><div class="stor-bar-bg"><div class="stor-bar-fill" style="width:58%;background:var(--primary);opacity:.4" data-val="58%"></div></div><span class="stor-val mono">58%</span><span class="stor-status" style="color:var(--primary)">HIST</span></div>
+        <div class="stor-row"><span class="stor-label">EU Mandate</span><div class="stor-bar-bg"><div class="stor-bar-fill" style="width:80%;background:var(--primary);opacity:.2" data-val="80%"></div></div><span class="stor-val mono">80%</span><span class="stor-status" style="color:var(--primary)">TARGET</span></div>
+      </div>
+      <p class="footnote">Red line = 15% emergency threshold. Sources: AGSI, gas-risiko.de, Reuters Jan 29 2026</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">CEE Policy Rates vs ECB (Mar 2026)</span><span class="card-tag tag-policy">RATES</span></div>
+      <div class="chart-wrap" style="height:230px"><canvas id="ratesChart"></canvas></div>
+      <p class="footnote">Hungary cut Feb 2026; Poland cut Mar 2026. ECB held at 2.00%. Source: Central banks, Erste Research Mar 12 2026</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">CEE + Austria Inflation Heat Matrix — HICP % YoY</span><span class="card-tag tag-macro">MACRO</span></div>
+    <div class="heat-matrix"><table class="heat-table"><thead><tr><th class="country">Country</th><th>2022</th><th>2023</th><th>2024</th><th>2025 Avg</th><th>Nov-25</th><th>2026F</th><th>Trend</th><th>Key Driver</th></tr></thead><tbody id="heatBody"></tbody></table></div>
+    <p class="footnote">Sources: Eurostat (Dec 2025), Statistics Austria Jan 2026, Erste Group Research Mar 12 2026, ING CEE Jan 2026</p>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: ENERGY ═══════ -->
+<div class="page" id="page-energy">
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">TTF vs Brent vs Oil (Indexed 100=Jan 2024)</span><span class="card-tag tag-energy">ENERGY MIX</span></div>
+      <div class="chart-wrap" style="height:250px"><canvas id="energyIndexChart"></canvas></div>
+      <p class="footnote">Note: Brent surged ~60% in 2 weeks post Iran shock (Feb 27 – Mar 10 2026). TTF +51%. Sources: TradingEconomics, ICE</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">EU LNG Import Routes — Dependency Snapshot</span><span class="card-tag tag-energy">SUPPLY</span></div>
+      <div style="padding:.5rem 0">
+        <div class="section-head">LNG Terminal Capacity vs. Demand Gap</div>
+        <div class="storage-bars">
+          <div class="stor-row"><span class="stor-label" style="font-size:10px">US LNG Share</span><div class="stor-bar-bg"><div class="stor-bar-fill" style="width:50%;background:var(--blue)" data-val="~50%"></div></div><span class="stor-val mono">~50%</span><span class="stor-status" style="color:var(--blue)">RISING</span></div>
+          <div class="stor-row"><span class="stor-label" style="font-size:10px">Qatar LNG</span><div class="stor-bar-bg"><div class="stor-bar-fill" style="width:20%;background:var(--gold)" data-val="~20%"></div></div><span class="stor-val mono">~20%</span><span class="stor-status" style="color:var(--gold)">STABLE</span></div>
+          <div class="stor-row"><span class="stor-label" style="font-size:10px">Norway Pipe</span><div class="stor-bar-bg"><div class="stor-bar-fill" style="width:30%;background:var(--primary)" data-val="~30%"></div></div><span class="stor-val mono">~30%</span><span class="stor-status" style="color:var(--primary)">MAXED</span></div>
+          <div class="stor-row"><span class="stor-label" style="font-size:10px">Russian Pipe</span><div class="stor-bar-bg"><div class="stor-bar-fill" style="width:3%;background:var(--err)" data-val="~3%"></div></div><span class="stor-val mono">~3%</span><span class="stor-status" style="color:var(--err)">CUT</span></div>
+        </div>
+        <hr class="divider-line">
+        <div class="section-head" style="margin-top:.75rem">Key Supply Risks (Ranked)</div>
+        <div class="watch-grid" style="grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem">
+          <div class="watch-item red"><div class="watch-title">Hormuz Closure</div><div class="watch-desc">15% world LNG through strait. Iran posturing post-US strike threats. 3-month reroute adds €12-16/MWh</div><div class="watch-date">ONGOING — Mar 2026</div></div>
+          <div class="watch-item orange"><div class="watch-title">Norway Maintenance</div><div class="watch-desc">Sleipner & Troll scheduled Q2 maintenance. 6 bcm/month lost. Any unplanned outage = TTF +€8</div><div class="watch-date">Q2 2026 risk</div></div>
+          <div class="watch-item orange"><div class="watch-title">US LNG Tariff Uncertainty</div><div class="watch-desc">Trump executive risk on LNG export licensing. EU-US trade tension could divert cargoes to Asia</div><div class="watch-date">Active — Mar 2026</div></div>
+          <div class="watch-item amber"><div class="watch-title">TAP/TANAP Capacity</div><div class="watch-desc">Azerbaijan-Italy route at full capacity. No incremental upside. Baku wants price renegotiation</div><div class="watch-date">2026–2027</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">TTF Forward Curve (Mar 2026)</span><span class="card-tag tag-energy">FUTURES</span></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="forwardChart"></canvas></div>
+      <p class="footnote">Summer&gt;Winter inversion. No injection incentive. ECE interventions possible. Source: ICE, Mar 17 2026</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">CEE Gas Import Dependency (%)</span><span class="card-tag tag-energy">EXPOSURE</span></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="dependencyChart"></canvas></div>
+      <p class="footnote">Slovakia 2024 remains heavily Russian-pipe dependent via TurkStream. Sources: Eurostat, IEA 2025</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Household Energy Bills — % Disposable Income</span><span class="card-tag tag-macro">DEMAND</span></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="billsChart"></canvas></div>
+      <p class="footnote">Slovakia &amp; Hungary cap schemes hide burden — fiscal cost ~2.5% of GDP. Sources: IEA, OECD 2025</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: INFLATION ═══════ -->
+<div class="page" id="page-inflation">
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">CEE HICP Inflation Trajectory 2020–2026F</span><span class="card-tag tag-macro">INFLATION</span></div>
+      <div class="chart-wrap" style="height:260px"><canvas id="cpiChart"></canvas></div>
+      <p class="footnote">Sources: Eurostat, Erste Research Mar 2026, local statistics offices</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Inflation Component Decomposition (2025 Annual Avg)</span><span class="card-tag tag-macro">BREAKDOWN</span></div>
+      <div class="chart-wrap" style="height:260px"><canvas id="compChart"></canvas></div>
+      <p class="footnote">Energy direct weight in CPI: 7–12% in CEE vs 8% EA avg. Services stickiest. Source: Eurostat, Erste</p>
+    </div>
+  </div>
+  <div class="grid-21" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Inflation Expectations — 5y5y Breakeven &amp; Consensus Forecasts</span><span class="card-tag tag-macro">EXPECTATIONS</span></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="expectChart"></canvas></div>
+      <p class="footnote">5y5y EUR inflation swap rose from 2.1% to 2.45% post Iran shock. Markets no longer confident in 2% anchor. Sources: Bloomberg, ECB, Erste Mar 12 2026</p>
+    </div>
+    <div class="card" style="min-width:0">
+      <div class="card-header"><span class="card-title">Second-Round Effects Tracker</span><span class="card-tag tag-risk">2ND ROUND</span></div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div style="padding:.5rem;background:var(--err-hi);border-radius:var(--r-md)">
+          <div style="font-size:10px;font-weight:700;color:var(--err);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">🔴 Wage Growth (Active)</div>
+          <div style="font-size:11px;color:var(--text)">AT: +5.3% real wages 2025; CZ: +8.8%; PL: +9.5% — well above productivity. Core stickiness follows.</div>
+        </div>
+        <div style="padding:.5rem;background:var(--warn-hi);border-radius:var(--r-md)">
+          <div style="font-size:10px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">🟠 Services Inflation (Sticky)</div>
+          <div style="font-size:11px;color:var(--text)">Restaurants, hotels, transport — energy cost pass-through lags 6–9 months. Still working through 2025 H2 shock.</div>
+        </div>
+        <div style="padding:.5rem;background:var(--gold-hi);border-radius:var(--r-md)">
+          <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">🟡 Rent (Emerging)</div>
+          <div style="font-size:11px;color:var(--text)">Austrian Richtwertmiete +3.8% Jan 26. Czech flat rents up 12% YoY in Prague. Indexed leases widening.</div>
+        </div>
+        <div style="padding:.5rem;background:var(--success-hi);border-radius:var(--r-md)">
+          <div style="font-size:10px;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem">🟢 Food (Fading)</div>
+          <div style="font-size:11px;color:var(--text)">Grain prices normalizing. AT food CPI fell from 9% to 3.5%. But nat-gas fertiliser costs = floor risk.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">Central Bank Divergence Matrix — CEE 2026</span><span class="card-tag tag-policy">POLICY</span></div>
+    <table class="sm-table">
+      <thead><tr><th>Central Bank</th><th>Current Rate</th><th>Last Move</th><th>Stance</th><th>2026F End</th><th>CPI Target</th><th>FX Implication</th><th>Equity Impact</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ECB</strong></td><td class="mono">2.00%</td><td>↓ Jan 26</td><td><span class="pill neu">HOLD</span></td><td class="mono">2.00–2.50%</td><td>2.0%</td><td>EUR/USD range-bound 1.04–1.10</td><td>Neutral; P/E support</td></tr>
+        <tr><td><strong>NBP (Poland)</strong></td><td class="mono">5.25%</td><td>↓ 50bp Mar 26</td><td><span class="pill bull">EASING</span></td><td class="mono">4.75%</td><td>2.5%</td><td>PLN mild weakening</td><td>WIG20 banks +ve on NIM trajectory</td></tr>
+        <tr><td><strong>MNB (Hungary)</strong></td><td class="mono">6.50%</td><td>↓ 25bp Feb 26</td><td><span class="pill warn">CAUTIOUS</span></td><td class="mono">5.75%</td><td>3.0%</td><td>HUF volatile; EM carry unwind risk</td><td>BUX PB&amp;F sector sensitive</td></tr>
+        <tr><td><strong>CNB (Czech)</strong></td><td class="mono">3.75%</td><td>↓ 25bp Jan 26</td><td><span class="pill bull">EASING</span></td><td class="mono">3.25%</td><td>2.0%</td><td>CZK resilient; CA surplus</td><td>PX Financials positive</td></tr>
+        <tr><td><strong>OeNB (Austria)</strong></td><td class="mono">(ECB)</td><td>(follows ECB)</td><td><span class="pill neu">HOLD</span></td><td class="mono">ECB+0bps</td><td>2.0%</td><td>EUR; AT spread +35bp vs DE</td><td>ATX banks margin pressure</td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">Sources: MNB press release Feb 2026, NBP Mar 5 2026, CNB Jan 2026, ECB Jan 2026, Erste Research</p>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: TRANSMISSION MAP ═══════ -->
+<div class="page" id="page-transmission">
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">Energy-to-Economy Transmission — Full Mind Map</span><span class="card-tag tag-macro">SYSTEM MAP</span></div>
+    <div style="overflow-x:auto;padding:.5rem 0">
+      <!-- SVG Mind Map -->
+      <svg viewBox="0 0 1100 700" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:900px;max-height:680px;font-family:'Inter',sans-serif">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="var(--muted)"/></marker>
+          <marker id="arr-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#d163a7"/></marker>
+          <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#fdab43"/></marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#6daa45"/></marker>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Central node -->
+        <ellipse cx="550" cy="350" rx="90" ry="42" fill="#01696f" filter="url(#glow)"/>
+        <text x="550" y="345" text-anchor="middle" fill="white" font-size="13" font-weight="700">ENERGY SHOCK</text>
+        <text x="550" y="362" text-anchor="middle" fill="rgba(255,255,255,.75)" font-size="10">TTF +65% · Storage 29%</text>
+        <!-- Branches: 6 main themes -->
+        <!-- 1. INFLATION (top-left) -->
+        <line x1="470" y1="325" x2="300" y2="195" stroke="#fdab43" stroke-width="2" marker-end="url(#arr-orange)"/>
+        <rect x="170" y="158" width="130" height="52" rx="8" fill="#3a2e1e" stroke="#fdab43" stroke-width="1.5"/>
+        <text x="235" y="178" text-anchor="middle" fill="#fdab43" font-size="11" font-weight="700">DIRECT INFLATION</text>
+        <text x="235" y="193" text-anchor="middle" fill="var(--text)" font-size="9">CPI +1.5–2.0pp on shock</text>
+        <text x="235" y="205" text-anchor="middle" fill="var(--text)" font-size="9">HICP energy wt: 8–12%</text>
+        <!-- sub nodes inflation -->
+        <line x1="170" y1="175" x2="100" y2="130" stroke="#fdab43" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="20" y="108" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="61" y="124" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Food Inflation</text>
+        <text x="61" y="136" text-anchor="middle" fill="var(--muted)" font-size="8">+Fertiliser cost</text>
+        <line x1="170" y1="188" x2="100" y2="175" stroke="#fdab43" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="18" y="158" width="84" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="60" y="174" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Transport</text>
+        <text x="60" y="186" text-anchor="middle" fill="var(--muted)" font-size="8">+Diesel +Airfare</text>
+        <!-- 2. MONETARY POLICY (top-right) -->
+        <line x1="630" y1="325" x2="800" y2="195" stroke="#4f98a3" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="800" y="158" width="132" height="52" rx="8" fill="var(--primary-hi)" stroke="var(--primary)" stroke-width="1.5"/>
+        <text x="866" y="178" text-anchor="middle" fill="var(--primary)" font-size="11" font-weight="700">MONETARY POLICY</text>
+        <text x="866" y="193" text-anchor="middle" fill="var(--text)" font-size="9">Divergence: ECB hold</text>
+        <text x="866" y="205" text-anchor="middle" fill="var(--text)" font-size="9">CEE easing ≠ ECB</text>
+        <!-- sub nodes policy -->
+        <line x1="930" y1="175" x2="1000" y2="130" stroke="#4f98a3" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="998" y="108" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="1039" y="124" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">FX Pressure</text>
+        <text x="1039" y="136" text-anchor="middle" fill="var(--muted)" font-size="8">HUF/PLN vol↑</text>
+        <line x1="930" y1="188" x2="1000" y2="175" stroke="#4f98a3" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="998" y="158" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="1039" y="174" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Bond Spread</text>
+        <text x="1039" y="186" text-anchor="middle" fill="var(--muted)" font-size="8">CEE sovereign risk</text>
+        <!-- 3. INDUSTRY / FEEDSTOCK (left) -->
+        <line x1="462" y1="360" x2="270" y2="360" stroke="#d163a7" stroke-width="2" marker-end="url(#arr-red)"/>
+        <rect x="140" y="332" width="132" height="52" rx="8" fill="var(--err-hi)" stroke="var(--err)" stroke-width="1.5"/>
+        <text x="206" y="352" text-anchor="middle" fill="var(--err)" font-size="11" font-weight="700">FEEDSTOCK SHOCK</text>
+        <text x="206" y="367" text-anchor="middle" fill="var(--text)" font-size="9">Chemicals / Fertiliser</text>
+        <text x="206" y="379" text-anchor="middle" fill="var(--text)" font-size="9">Steel / Aluminium</text>
+        <line x1="140" y1="345" x2="68" y2="295" stroke="#d163a7" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="12" y="274" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="53" y="290" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Plastics Chain</text>
+        <text x="53" y="302" text-anchor="middle" fill="var(--muted)" font-size="8">Margin squeeze</text>
+        <line x1="140" y1="370" x2="68" y2="400" stroke="#d163a7" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="12" y="380" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="53" y="396" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Auto Parts</text>
+        <text x="53" y="408" text-anchor="middle" fill="var(--muted)" font-size="8">Polska/HU plants</text>
+        <!-- 4. HOUSEHOLD / CONSUMPTION (right) -->
+        <line x1="638" y1="360" x2="830" y2="360" stroke="#fdab43" stroke-width="2" marker-end="url(#arr-orange)"/>
+        <rect x="828" y="332" width="134" height="52" rx="8" fill="#3a2e1e" stroke="#fdab43" stroke-width="1.5"/>
+        <text x="895" y="352" text-anchor="middle" fill="#fdab43" font-size="11" font-weight="700">HOUSEHOLD SQUEEZE</text>
+        <text x="895" y="367" text-anchor="middle" fill="var(--text)" font-size="9">Real wage erosion</text>
+        <text x="895" y="379" text-anchor="middle" fill="var(--text)" font-size="9">Consumption rotation</text>
+        <line x1="960" y1="345" x2="1005" y2="295" stroke="#fdab43" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="1003" y="274" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="1044" y="290" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Retail Sales</text>
+        <text x="1044" y="302" text-anchor="middle" fill="var(--muted)" font-size="8">Non-durable down</text>
+        <line x1="960" y1="370" x2="1005" y2="410" stroke="#fdab43" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="1003" y="393" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="1044" y="409" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Mortgage Stress</text>
+        <text x="1044" y="421" text-anchor="middle" fill="var(--muted)" font-size="8">AT floaters risk</text>
+        <!-- 5. FISCAL (bottom-left) -->
+        <line x1="490" y1="392" x2="340" y2="520" stroke="#6daa45" stroke-width="2" marker-end="url(#arr-green)"/>
+        <rect x="198" y="498" width="148" height="52" rx="8" fill="var(--success-hi)" stroke="var(--success)" stroke-width="1.5"/>
+        <text x="272" y="518" text-anchor="middle" fill="var(--success)" font-size="11" font-weight="700">FISCAL RESPONSE</text>
+        <text x="272" y="533" text-anchor="middle" fill="var(--text)" font-size="9">AT energy support: €5bn</text>
+        <text x="272" y="545" text-anchor="middle" fill="var(--text)" font-size="9">HU price caps: ~2% GDP</text>
+        <line x1="198" y1="520" x2="120" y2="565" stroke="#6daa45" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="20" y="548" width="102" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="71" y="564" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Deficit Widening</text>
+        <text x="71" y="576" text-anchor="middle" fill="var(--muted)" font-size="8">PL 6%/ HU 4.5% GDP</text>
+        <!-- 6. EQUITIES / MARKETS (bottom-right) -->
+        <line x1="610" y1="392" x2="760" y2="520" stroke="#a86fdf" stroke-width="2" marker-end="url(#arr)"/>
+        <rect x="754" y="498" width="148" height="52" rx="8" fill="var(--purple-highlight,#4e4652)" stroke="#a86fdf" stroke-width="1.5"/>
+        <text x="828" y="518" text-anchor="middle" fill="#a86fdf" font-size="11" font-weight="700">EQUITY IMPACTS</text>
+        <text x="828" y="533" text-anchor="middle" fill="var(--text)" font-size="9">Utilities: re-rate up</text>
+        <text x="828" y="545" text-anchor="middle" fill="var(--text)" font-size="9">Chemicals: margin down</text>
+        <line x1="900" y1="520" x2="1000" y2="560" stroke="#a86fdf" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="998" y="543" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="1039" y="559" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Banks: NIM</text>
+        <text x="1039" y="571" text-anchor="middle" fill="var(--muted)" font-size="8">AT mgt pressure</text>
+        <line x1="900" y1="540" x2="1000" y2="600" stroke="#a86fdf" stroke-width="1.2" stroke-dasharray="4"/>
+        <rect x="998" y="583" width="82" height="34" rx="6" fill="var(--offset)" stroke="var(--border)"/>
+        <text x="1039" y="599" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Real Estate</text>
+        <text x="1039" y="611" text-anchor="middle" fill="var(--muted)" font-size="8">BUWOG type stress</text>
+        <!-- Centre label -->
+        <text x="550" y="650" text-anchor="middle" fill="var(--faint)" font-size="10">Solid lines = primary transmission · Dashed = secondary effects · All 6 channels interact non-linearly</text>
+      </svg>
+    </div>
+    <p class="footnote">Transmission framework. Primary channels: energy price → inflation → monetary policy → FX/rates → equities. Secondary: supply chain, fiscal drag, sentiment.</p>
+  </div>
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Transmission Chain — Step-by-Step Flow</span><span class="card-tag tag-macro">LOGIC</span></div>
+      <div class="tx-chain">
+        <div class="tx-node"><span class="tx-icon">⚡</span><span class="tx-label">Gas Price Shock</span><span class="tx-sub">TTF +65%<br>Brent +60%<br>Iran risk</span></div>
+        <div class="tx-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="tx-node"><span class="tx-icon">🏭</span><span class="tx-label">Production Cost</span><span class="tx-sub">Chem +€80/t<br>Steel +€55/t<br>Power +40%</span></div>
+        <div class="tx-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="tx-node"><span class="tx-icon">📦</span><span class="tx-label">Input Prices</span><span class="tx-sub">PPI +6–9%<br>Fertiliser +25%<br>Plastics +18%</span></div>
+        <div class="tx-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="tx-node"><span class="tx-icon">🛒</span><span class="tx-label">Consumer Prices</span><span class="tx-sub">Food +4–6%<br>Services +4%<br>CPI +1.5pp</span></div>
+        <div class="tx-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="tx-node"><span class="tx-icon">💰</span><span class="tx-label">Wage Claims</span><span class="tx-sub">AT +5.3%<br>PL +9.5%<br>CZ +8.8%</span></div>
+        <div class="tx-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="tx-node"><span class="tx-icon">🏦</span><span class="tx-label">Policy Rate</span><span class="tx-sub">ECB hold<br>CEE diverge<br>Mkt +40bp</span></div>
+        <div class="tx-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="tx-node"><span class="tx-icon">📉</span><span class="tx-label">Market Impact</span><span class="tx-sub">P/E compress<br>Credit spreads<br>FX vol</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Second-Round Multiplier Cascade</span><span class="card-tag tag-risk">AMPLIFIERS</span></div>
+      <div style="overflow-x:auto">
+        <svg viewBox="0 0 500 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'Inter',sans-serif">
+          <defs><marker id="sm-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="var(--muted)"/></marker></defs>
+          <!-- energy cost box -->
+          <rect x="10" y="10" width="110" height="36" rx="6" fill="#3a2e1e" stroke="#fdab43" stroke-width="1.5"/>
+          <text x="65" y="24" text-anchor="middle" fill="#fdab43" font-size="10" font-weight="700">Energy Cost ↑</text>
+          <text x="65" y="38" text-anchor="middle" fill="var(--muted)" font-size="8">Initial shock: +65%</text>
+          <!-- arrows from energy cost -->
+          <line x1="120" y1="28" x2="190" y2="28" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="190" y="10" width="108" height="36" rx="6" fill="var(--err-hi)" stroke="var(--err)" stroke-width="1"/>
+          <text x="244" y="24" text-anchor="middle" fill="var(--err)" font-size="10" font-weight="700">PPI / PCI Rises</text>
+          <text x="244" y="38" text-anchor="middle" fill="var(--muted)" font-size="8">Input cost passthru</text>
+          <line x1="298" y1="28" x2="380" y2="28" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="380" y="10" width="108" height="36" rx="6" fill="var(--warn-hi)" stroke="var(--warn)" stroke-width="1"/>
+          <text x="434" y="24" text-anchor="middle" fill="var(--warn)" font-size="10" font-weight="700">CPI Up (+1.5pp)</text>
+          <text x="434" y="38" text-anchor="middle" fill="var(--muted)" font-size="8">Direct + indirect</text>
+          <!-- row 2 -->
+          <line x1="434" y1="46" x2="434" y2="95" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="380" y="95" width="108" height="36" rx="6" fill="var(--gold-hi)" stroke="var(--gold)" stroke-width="1"/>
+          <text x="434" y="109" text-anchor="middle" fill="var(--gold)" font-size="10" font-weight="700">Wage Claims ↑</text>
+          <text x="434" y="123" text-anchor="middle" fill="var(--muted)" font-size="8">2nd round — sticky</text>
+          <line x1="380" y1="113" x2="300" y2="113" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="190" y="95" width="110" height="36" rx="6" fill="var(--err-hi)" stroke="var(--err)" stroke-width="1"/>
+          <text x="245" y="109" text-anchor="middle" fill="var(--err)" font-size="10" font-weight="700">Services CPI ↑</text>
+          <text x="245" y="123" text-anchor="middle" fill="var(--muted)" font-size="8">Restaurants, hotels</text>
+          <line x1="190" y1="113" x2="120" y2="113" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="10" y="95" width="110" height="36" rx="6" fill="var(--primary-hi)" stroke="var(--primary)" stroke-width="1"/>
+          <text x="65" y="109" text-anchor="middle" fill="var(--primary)" font-size="10" font-weight="700">Expectation ↑</text>
+          <text x="65" y="123" text-anchor="middle" fill="var(--muted)" font-size="8">5y5y ↑ 2.1→2.45%</text>
+          <!-- row 3 -->
+          <line x1="65" y1="131" x2="65" y2="182" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="10" y="182" width="110" height="36" rx="6" fill="var(--gold-hi)" stroke="var(--gold)" stroke-width="1"/>
+          <text x="65" y="196" text-anchor="middle" fill="var(--gold)" font-size="10" font-weight="700">CB Hawkishness</text>
+          <text x="65" y="210" text-anchor="middle" fill="var(--muted)" font-size="8">ECB +40bp mkt priced</text>
+          <line x1="120" y1="200" x2="190" y2="200" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="190" y="182" width="110" height="36" rx="6" fill="var(--blue-hi)" stroke="var(--blue)" stroke-width="1"/>
+          <text x="245" y="196" text-anchor="middle" fill="var(--blue)" font-size="10" font-weight="700">Risk Premia ↑</text>
+          <text x="245" y="210" text-anchor="middle" fill="var(--muted)" font-size="8">EM CEE spreads +45bp</text>
+          <line x1="300" y1="200" x2="380" y2="200" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="380" y="182" width="108" height="36" rx="6" fill="var(--err-hi)" stroke="var(--err)" stroke-width="1.5"/>
+          <text x="434" y="196" text-anchor="middle" fill="var(--err)" font-size="10" font-weight="700">P/E Compression</text>
+          <text x="434" y="210" text-anchor="middle" fill="var(--muted)" font-size="8">Equities re-price</text>
+          <!-- row 4 outcome -->
+          <line x1="244" y1="218" x2="244" y2="270" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#sm-arr)"/>
+          <rect x="150" y="270" width="200" height="40" rx="8" fill="var(--primary)" opacity=".9"/>
+          <text x="250" y="287" text-anchor="middle" fill="white" font-size="11" font-weight="700">GDP Growth Drag: −0.4 to −1.1pp</text>
+          <text x="250" y="302" text-anchor="middle" fill="rgba(255,255,255,.75)" font-size="9">Full wage-price spiral if 5y5y &gt; 2.5%</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: FEEDSTOCK ═══════ -->
+<div class="page" id="page-feedstock">
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">Industry Feedstock — Energy Input Cost Multipliers (Natural Gas Intensive)</span><span class="card-tag tag-energy">FEEDSTOCK</span></div>
+    <div class="chart-wrap" style="height:260px"><canvas id="multiplierChart"></canvas></div>
+    <p class="footnote">Gas share of total production cost. A 65% TTF rise translates to these industry-level cost increases. Sources: IEA, Eurostat STS, Erste Industry Research 2025</p>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Chemical / Fertiliser Chain</span><span class="card-tag tag-energy">CHEM</span></div>
+      <div style="overflow-x:auto">
+        <svg viewBox="0 0 290 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'Inter',sans-serif">
+          <defs><marker id="a2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#fdab43"/></marker></defs>
+          <rect x="95" y="8" width="100" height="32" rx="6" fill="#3a2e1e" stroke="#fdab43" stroke-width="1.5"/>
+          <text x="145" y="21" text-anchor="middle" fill="#fdab43" font-size="10" font-weight="700">NATURAL GAS</text>
+          <text x="145" y="33" text-anchor="middle" fill="var(--muted)" font-size="8">Feedstock + fuel ~65%</text>
+          <line x1="145" y1="40" x2="145" y2="65" stroke="#fdab43" stroke-width="1.5" marker-end="url(#a2)"/>
+          <rect x="95" y="65" width="100" height="32" rx="6" fill="var(--err-hi)" stroke="var(--err)" stroke-width="1"/>
+          <text x="145" y="78" text-anchor="middle" fill="var(--err)" font-size="10" font-weight="700">AMMONIA</text>
+          <text x="145" y="90" text-anchor="middle" fill="var(--muted)" font-size="8">Gas = 70–80% cost</text>
+          <line x1="95" y1="81" x2="45" y2="110" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3" marker-end="url(#a2)"/>
+          <rect x="5" y="108" width="88" height="28" rx="5" fill="var(--offset)" stroke="var(--border)"/>
+          <text x="49" y="120" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Urea / AN</text>
+          <text x="49" y="130" text-anchor="middle" fill="var(--muted)" font-size="8">Farm: food prices ↑</text>
+          <line x1="195" y1="81" x2="245" y2="110" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3" marker-end="url(#a2)"/>
+          <rect x="198" y="108" width="86" height="28" rx="5" fill="var(--offset)" stroke="var(--border)"/>
+          <text x="241" y="120" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Nitric Acid</text>
+          <text x="241" y="130" text-anchor="middle" fill="var(--muted)" font-size="8">Plastics, pharma</text>
+          <line x1="145" y1="97" x2="145" y2="125" stroke="#fdab43" stroke-width="1.5" marker-end="url(#a2)"/>
+          <rect x="95" y="125" width="100" height="32" rx="6" fill="var(--warn-hi)" stroke="var(--warn)" stroke-width="1"/>
+          <text x="145" y="138" text-anchor="middle" fill="var(--warn)" font-size="10" font-weight="700">CHEMICALS</text>
+          <text x="145" y="150" text-anchor="middle" fill="var(--muted)" font-size="8">Ethylene, PTA, methanol</text>
+          <line x1="145" y1="157" x2="145" y2="185" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#a2)"/>
+          <rect x="80" y="185" width="130" height="32" rx="6" fill="var(--success-hi)" stroke="var(--success)" stroke-width="1"/>
+          <text x="145" y="198" text-anchor="middle" fill="var(--success)" font-size="10" font-weight="700">DOWNSTREAM CEE</text>
+          <text x="145" y="210" text-anchor="middle" fill="var(--muted)" font-size="8">Pharma · Auto · FMCG · Retail</text>
+          <line x1="145" y1="217" x2="145" y2="242" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3" marker-end="url(#a2)"/>
+          <rect x="80" y="242" width="130" height="14" rx="4" fill="var(--offset)" stroke="var(--border)"/>
+          <text x="145" y="252" text-anchor="middle" fill="var(--muted)" font-size="8">CPI food/goods +1.5–3.0pp</text>
+        </svg>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Steel / Metals Production Chain</span><span class="card-tag tag-energy">METALS</span></div>
+      <div style="overflow-x:auto">
+        <svg viewBox="0 0 290 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'Inter',sans-serif">
+          <defs><marker id="a3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#5591c7"/></marker></defs>
+          <rect x="80" y="8" width="130" height="32" rx="6" fill="var(--blue-hi)" stroke="var(--blue)" stroke-width="1.5"/>
+          <text x="145" y="21" text-anchor="middle" fill="var(--blue)" font-size="10" font-weight="700">ELECTRICITY / COKE</text>
+          <text x="145" y="33" text-anchor="middle" fill="var(--muted)" font-size="8">EAF: 40% energy cost; BF: coking coal</text>
+          <line x1="145" y1="40" x2="80" y2="65" stroke="#5591c7" stroke-width="1.5" marker-end="url(#a3)"/>
+          <rect x="8" y="65" width="96" height="32" rx="6" fill="var(--err-hi)" stroke="var(--err)" stroke-width="1"/>
+          <text x="56" y="78" text-anchor="middle" fill="var(--err)" font-size="10" font-weight="700">CRUDE STEEL</text>
+          <text x="56" y="90" text-anchor="middle" fill="var(--muted)" font-size="8">HBIS Tata, NLMK +30%</text>
+          <line x1="145" y1="40" x2="210" y2="65" stroke="#5591c7" stroke-width="1.5" marker-end="url(#a3)"/>
+          <rect x="186" y="65" width="96" height="32" rx="6" fill="var(--gold-hi)" stroke="var(--gold)" stroke-width="1"/>
+          <text x="234" y="78" text-anchor="middle" fill="var(--gold)" font-size="10" font-weight="700">ALUMINIUM</text>
+          <text x="234" y="90" text-anchor="middle" fill="var(--muted)" font-size="8">Elec: 35–40% cost</text>
+          <line x1="56" y1="97" x2="56" y2="120" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3" marker-end="url(#a3)"/>
+          <line x1="234" y1="97" x2="234" y2="120" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3" marker-end="url(#a3)"/>
+          <rect x="95" y="120" width="100" height="32" rx="6" fill="var(--warn-hi)" stroke="var(--warn)" stroke-width="1"/>
+          <text x="145" y="133" text-anchor="middle" fill="var(--warn)" font-size="10" font-weight="700">FLAT / LONG PRODUCTS</text>
+          <text x="145" y="145" text-anchor="middle" fill="var(--muted)" font-size="8">HRC, CRC, wire rod</text>
+          <line x1="145" y1="152" x2="60" y2="185" stroke="var(--muted)" stroke-width="1" marker-end="url(#a3)"/>
+          <rect x="5" y="183" width="112" height="28" rx="5" fill="var(--offset)" stroke="var(--border)"/>
+          <text x="61" y="195" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Automotive (CEE plants)</text>
+          <text x="61" y="205" text-anchor="middle" fill="var(--muted)" font-size="8">VW Bratislava, Stellantis PL</text>
+          <line x1="145" y1="152" x2="230" y2="185" stroke="var(--muted)" stroke-width="1" marker-end="url(#a3)"/>
+          <rect x="174" y="183" width="112" height="28" rx="5" fill="var(--offset)" stroke="var(--border)"/>
+          <text x="230" y="195" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">Construction / Infra</text>
+          <text x="230" y="205" text-anchor="middle" fill="var(--muted)" font-size="8">AT/CZ capex slow</text>
+          <line x1="145" y1="215" x2="145" y2="240" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2" marker-end="url(#a3)"/>
+          <rect x="80" y="240" width="130" height="14" rx="4" fill="var(--offset)" stroke="var(--border)"/>
+          <text x="145" y="250" text-anchor="middle" fill="var(--muted)" font-size="8">CEE CapEx: −€3–5bn/yr if sustained</text>
+        </svg>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Power Generation — Merit Order Shift</span><span class="card-tag tag-energy">POWER</span></div>
+      <div class="chart-wrap" style="height:200px"><canvas id="meritChart"></canvas></div>
+      <p class="footnote">Gas sets marginal price ~45% of EU hours. CEE power price tracks TTF + 15% premium. Source: ENTSO-E, Montel 2025</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">CEE Sector Energy Intensity — Competitive Disadvantage Map</span><span class="card-tag tag-risk">EXPOSURE</span></div>
+    <div class="grid-2">
+      <div class="chart-wrap" style="height:220px"><canvas id="sectorIntChart"></canvas></div>
+      <div>
+        <div class="section-head">Sector Impact by Country Exposure</div>
+        <table class="sm-table">
+          <thead><tr><th>Sector</th><th>Gas Intensity</th><th>AT</th><th>PL</th><th>HU</th><th>CZ</th><th>Listed Names Exposed</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Chemicals/Fertilisers</strong></td><td class="mono">65–80%</td><td><span class="pill bear">HIGH</span></td><td><span class="pill bear">HIGH</span></td><td><span class="pill bear">HIGH</span></td><td><span class="pill bear">HIGH</span></td><td style="font-size:10px">Uniper, OMV (feedstock)</td></tr>
+            <tr><td><strong>Cement / Glass</strong></td><td class="mono">30–50%</td><td><span class="pill warn">MED</span></td><td><span class="pill warn">MED</span></td><td><span class="pill bear">HIGH</span></td><td><span class="pill warn">MED</span></td><td style="font-size:10px">CRH (cement input)</td></tr>
+            <tr><td><strong>Steel (EAF)</strong></td><td class="mono">25–40%</td><td><span class="pill warn">MED</span></td><td><span class="pill bear">HIGH</span></td><td><span class="pill warn">MED</span></td><td><span class="pill warn">MED</span></td><td style="font-size:10px">ArcelorMittal PL</td></tr>
+            <tr><td><strong>Aluminium Smelting</strong></td><td class="mono">35–45% (elec)</td><td><span class="pill bear">HIGH</span></td><td><span class="pill warn">MED</span></td><td><span class="pill bear">HIGH</span></td><td><span class="pill warn">MED</span></td><td style="font-size:10px">AMAG, MAL Aluminium</td></tr>
+            <tr><td><strong>Food Processing</strong></td><td class="mono">8–18%</td><td><span class="pill warn">MED</span></td><td><span class="pill warn">MED</span></td><td><span class="pill warn">MED</span></td><td><span class="pill warn">MED</span></td><td style="font-size:10px">KMB, Purcari, KGHM</td></tr>
+            <tr><td><strong>District Heating</strong></td><td class="mono">50–65%</td><td><span class="pill bear">CRIT</span></td><td><span class="pill warn">MED</span></td><td><span class="pill bear">CRIT</span></td><td><span class="pill warn">MED</span></td><td style="font-size:10px">Wien Energie, MVM</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: EQUITIES ═══════ -->
+<div class="page" id="page-equities">
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Index Performance — YTD 2026 (% Total Return, Local CCY)</span><span class="card-tag tag-equity">INDICES</span></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="indexPerfChart"></canvas></div>
+      <p class="footnote">BUX 2025: +40% global top performer. WIG20 lagged on energy cost headwinds. Source: Bloomberg, Erste Mar 12 2026</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Index Sector Weight vs Energy Risk Exposure</span><span class="card-tag tag-equity">SECTOR TILT</span></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="sectorTiltChart"></canvas></div>
+      <p class="footnote">ATX heavily financials; BUX: OTP &gt;30% weight. WIG20: energy sector + Orlen = 20%. PX: heavily financials + Cez.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">ATX (Austria) — Key Constituents: Energy Crisis Impact Matrix</span><span class="card-tag tag-equity">ATX</span></div>
+    <table class="sm-table">
+      <thead><tr><th>Name</th><th>Sector</th><th>ATX Weight</th><th>YTD 2026</th><th>Energy Impact</th><th>Stance</th><th>Key Risk / Catalyst</th></tr></thead>
+      <tbody>
+        <tr><td><strong>OMV</strong></td><td>Integrated Energy</td><td class="mono">16.8%</td><td><span style="color:var(--success)" class="mono">+12.3%</span></td><td><span class="pill hot">BENEFICIARY</span></td><td><span class="pill bull">BUY</span></td><td style="font-size:10px">High gas price = refining margin. Watch: Borealis feedstock drag</td></tr>
+        <tr><td><strong>Erste Group</strong></td><td>Financials</td><td class="mono">16.5%</td><td><span style="color:var(--success)" class="mono">+5.1%</span></td><td><span class="pill warn">INDIRECT</span></td><td><span class="pill bull">BUY</span></td><td style="font-size:10px">NIM benefits from rates; NPL risk if GDP drag materialises</td></tr>
+        <tr><td><strong>Verbund</strong></td><td>Utilities (Hydro)</td><td class="mono">12.0%</td><td><span style="color:var(--success)" class="mono">+18.4%</span></td><td><span class="pill hot">STRONG BEN</span></td><td><span class="pill bull">BUY</span></td><td style="font-size:10px">Hydro captive = windfall. Regulation risk if EU intervenes on power profits</td></tr>
+        <tr><td><strong>Raiffeisen Bank Int.</strong></td><td>Financials</td><td class="mono">7.8%</td><td><span style="color:var(--err)" class="mono">−3.4%</span></td><td><span class="pill bear">NEGATIVE</span></td><td><span class="pill warn">HOLD</span></td><td style="font-size:10px">Russia exposure, ECB compliance overhang. Energy stress in CEE markets</td></tr>
+        <tr><td><strong>BAWAG Group</strong></td><td>Financials</td><td class="mono">6.6%</td><td><span style="color:var(--success)" class="mono">+7.9%</span></td><td><span class="pill neu">LOW</span></td><td><span class="pill bull">BUY</span></td><td style="font-size:10px">Primarily Austrian domestic — limited direct energy exposure; NIM positive</td></tr>
+        <tr><td><strong>Andritz</strong></td><td>Capital Goods</td><td class="mono">5.2%</td><td><span style="color:var(--success)" class="mono">+9.6%</span></td><td><span class="pill hot">BENEFICIARY</span></td><td><span class="pill bull">BUY</span></td><td style="font-size:10px">Hydro capex acceleration; pulp/paper segment energy headwind</td></tr>
+        <tr><td><strong>Strabag</strong></td><td>Construction</td><td class="mono">5.0%</td><td><span style="color:var(--muted)" class="mono">−0.8%</span></td><td><span class="pill warn">MIXED</span></td><td><span class="pill warn">HOLD</span></td><td style="font-size:10px">Energy infra orders ↑; building materials cost squeeze; public budget caution</td></tr>
+        <tr><td><strong>voestalpine</strong></td><td>Steel / Metal</td><td class="mono">4.5%</td><td><span style="color:var(--err)" class="mono">−8.7%</span></td><td><span class="pill bear">NEGATIVE</span></td><td><span class="pill warn">HOLD</span></td><td style="font-size:10px">EAF exposure: energy cost ↑. HRC spread compression vs Asian imports</td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">Sources: ATX fact sheet Jan 2026, Erste Equity Research Mar 2026, Bloomberg consensus. YTD as of Mar 17 2026</p>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">BUX (Hungary) + PX (Prague) — Key Names</span><span class="card-tag tag-equity">BUX / PX</span></div>
+      <table class="sm-table">
+        <thead><tr><th>Name</th><th>Index</th><th>Weight</th><th>YTD 2026</th><th>Energy View</th><th>Key Note</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OTP Bank</strong></td><td>BUX</td><td class="mono">33%</td><td><span style="color:var(--success)" class="mono">+11.2%</span></td><td><span class="pill neu">NEUTRAL</span></td><td style="font-size:10px">Dominant CEE bank; inflation = NIM support</td></tr>
+          <tr><td><strong>MOL Group</strong></td><td>BUX</td><td class="mono">22%</td><td><span style="color:var(--success)" class="mono">+17.8%</span></td><td><span class="pill hot">BENEFICIARY</span></td><td style="font-size:10px">High Brent = refining / exploration upside</td></tr>
+          <tr><td><strong>Richter Gedeon</strong></td><td>BUX</td><td class="mono">12%</td><td><span style="color:var(--success)" class="mono">+3.6%</span></td><td><span class="pill warn">MILD NEG</span></td><td style="font-size:10px">Pharma ingredients energy cost; capex plans intact</td></tr>
+          <tr><td><strong>Magyar Telekom</strong></td><td>BUX</td><td class="mono">8%</td><td><span style="color:var(--muted)" class="mono">+1.3%</span></td><td><span class="pill neu">LOW</span></td><td style="font-size:10px">Utility bills reduce HH discretionary; low direct energy</td></tr>
+          <tr><td><strong>CEZ Group</strong></td><td>PX</td><td class="mono">25%</td><td><span style="color:var(--success)" class="mono">+22.1%</span></td><td><span class="pill hot">STRONG BEN</span></td><td style="font-size:10px">Nuclear base = windfall profits at high power prices</td></tr>
+          <tr><td><strong>Komercni Banka</strong></td><td>PX</td><td class="mono">18%</td><td><span style="color:var(--success)" class="mono">+8.7%</span></td><td><span class="pill neu">LOW</span></td><td style="font-size:10px">Czech mortgage book; NIM positive in easing cycle</td></tr>
+          <tr><td><strong>Moneta Money Bank</strong></td><td>PX</td><td class="mono">8%</td><td><span style="color:var(--success)" class="mono">+6.4%</span></td><td><span class="pill neu">LOW</span></td><td style="font-size:10px">Consumer credit; inflation erodes borrower quality</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">WIG20 (Poland) — Key Names</span><span class="card-tag tag-equity">WIG20</span></div>
+      <table class="sm-table">
+        <thead><tr><th>Name</th><th>Weight</th><th>YTD 2026</th><th>Energy View</th><th>Key Note</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PKO BP</strong></td><td class="mono">14%</td><td><span style="color:var(--success)" class="mono">+6.2%</span></td><td><span class="pill neu">LOW</span></td><td style="font-size:10px">Largest Polish bank; inflation NIM+ ; mortgage risk</td></tr>
+          <tr><td><strong>KGHM</strong></td><td class="mono">11%</td><td><span style="color:var(--err)" class="mono">−4.8%</span></td><td><span class="pill bear">NEGATIVE</span></td><td style="font-size:10px">Copper smelting = electricity intensive; cost squeeze</td></tr>
+          <tr><td><strong>PKN Orlen</strong></td><td class="mono">10%</td><td><span style="color:var(--success)" class="mono">+15.4%</span></td><td><span class="pill hot">BENEFICIARY</span></td><td style="font-size:10px">Integrated oil; high prices = refining + E&amp;P upside</td></tr>
+          <tr><td><strong>PGE</strong></td><td class="mono">7%</td><td><span style="color:var(--warn)" class="mono">+3.1%</span></td><td><span class="pill warn">MIXED</span></td><td style="font-size:10px">Coal + gas power mix. High power prices partly offset coal cost</td></tr>
+          <tr><td><strong>Asseco Poland</strong></td><td class="mono">6%</td><td><span style="color:var(--success)" class="mono">+4.5%</span></td><td><span class="pill neu">LOW</span></td><td style="font-size:10px">IT services; data centre electricity cost marginal</td></tr>
+          <tr><td><strong>mBank</strong></td><td class="mono">5%</td><td><span style="color:var(--success)" class="mono">+9.3%</span></td><td><span class="pill neu">LOW</span></td><td style="font-size:10px">German parent (Commerzbank); CHF loan tail near resolved</td></tr>
+          <tr><td><strong>Allegro</strong></td><td class="mono">5%</td><td><span style="color:var(--err)" class="mono">−2.9%</span></td><td><span class="pill warn">MILD NEG</span></td><td style="font-size:10px">Logistics cost ↑; discretionary demand softness; tech de-rate</td></tr>
+          <tr><td><strong>LPP</strong></td><td class="mono">4%</td><td><span style="color:var(--err)" class="mono">−1.7%</span></td><td><span class="pill warn">MILD NEG</span></td><td style="font-size:10px">Fashion retail — cost inputs + consumer squeeze</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: SCENARIOS ═══════ -->
+<div class="page" id="page-scenarios">
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">2026 Macro Scenario Framework — CEE & AT</span><span class="card-tag tag-risk">SCENARIOS</span></div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:1rem">Three independent probability-weighted scenarios. Scenarios are proprietary desk designations — not affiliated with any external research house.</p>
+    <div class="scenario-grid">
+      <div class="scenario-card sc-base">
+        <h3>🟢 Scenario I — Controlled Refill</h3>
+        <p style="font-size:11px;margin-bottom:.75rem">Iran de-escalation by May. LNG flows normalise. Injection season achieves 65% by Oct. ECB stays at 2.0%.</p>
+        <div class="sc-row"><span>Probability</span><span class="sc-metric">40%</span></div>
+        <div class="sc-row"><span>TTF Yr-End</span><span class="sc-metric">€32/MWh</span></div>
+        <div class="sc-row"><span>EU CPI 2026</span><span class="sc-metric">2.2%</span></div>
+        <div class="sc-row"><span>CEE GDP Growth</span><span class="sc-metric">2.6–3.2%</span></div>
+        <div class="sc-row"><span>ECB Rate YE</span><span class="sc-metric">2.00%</span></div>
+        <div class="sc-row"><span>ATX Target</span><span class="sc-metric">+8–12%</span></div>
+        <div class="sc-row"><span>BUX Target</span><span class="sc-metric">+10–15%</span></div>
+        <div class="sc-row"><span>WIG20 Target</span><span class="sc-metric">+6–10%</span></div>
+        <div class="sc-row"><span>Key Signal</span><span class="sc-metric">TTF &lt; €38</span></div>
+      </div>
+      <div class="scenario-card sc-stage">
+        <h3>🟡 Scenario II — Prolonged Squeeze</h3>
+        <p style="font-size:11px;margin-bottom:.75rem">Iran tension continues. EU storage hits Oct target only 55%. ECB forced to hike +50bp by Dec. CEE rates diverge further.</p>
+        <div class="sc-row"><span>Probability</span><span class="sc-metric">45%</span></div>
+        <div class="sc-row"><span>TTF Yr-End</span><span class="sc-metric">€48–60/MWh</span></div>
+        <div class="sc-row"><span>EU CPI 2026</span><span class="sc-metric">3.4%</span></div>
+        <div class="sc-row"><span>CEE GDP Growth</span><span class="sc-metric">1.4–2.0%</span></div>
+        <div class="sc-row"><span>ECB Rate YE</span><span class="sc-metric">2.50%</span></div>
+        <div class="sc-row"><span>ATX Target</span><span class="sc-metric">−3 to +3%</span></div>
+        <div class="sc-row"><span>BUX Target</span><span class="sc-metric">+2–8% (MOL lift)</span></div>
+        <div class="sc-row"><span>WIG20 Target</span><span class="sc-metric">−2 to +4%</span></div>
+        <div class="sc-row"><span>Key Signal</span><span class="sc-metric">5y5y &gt; 2.4%</span></div>
+      </div>
+      <div class="scenario-card sc-sys">
+        <h3>🔴 Scenario III — Supply Rupture</h3>
+        <p style="font-size:11px;margin-bottom:.75rem">Hormuz partial closure OR Norway unplanned outage. Storage fails to refill. EC emergency price caps invoked. Recession in AT, DE.</p>
+        <div class="sc-row"><span>Probability</span><span class="sc-metric">15%</span></div>
+        <div class="sc-row"><span>TTF Yr-End</span><span class="sc-metric">€85–120/MWh</span></div>
+        <div class="sc-row"><span>EU CPI 2026</span><span class="sc-metric">5.5–7.0%</span></div>
+        <div class="sc-row"><span>CEE GDP Growth</span><span class="sc-metric">−0.5 to +0.5%</span></div>
+        <div class="sc-row"><span>ECB Rate YE</span><span class="sc-metric">3.00–3.50%</span></div>
+        <div class="sc-row"><span>ATX Target</span><span class="sc-metric">−20 to −35%</span></div>
+        <div class="sc-row"><span>BUX Target</span><span class="sc-metric">−5 to −15%</span></div>
+        <div class="sc-row"><span>WIG20 Target</span><span class="sc-metric">−15 to −25%</span></div>
+        <div class="sc-row"><span>Key Signal</span><span class="sc-metric">DE storage &lt;12%</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-bottom:1rem">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Scenario I vs III — Key Macro Outcomes</span><span class="card-tag tag-risk">DELTA</span></div>
+      <div class="chart-wrap" style="height:240px"><canvas id="scenarioChart"></canvas></div>
+      <p class="footnote">Radar chart normalised 0–100. Scenario III degrades nearly all macro variables sharply.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Desk Heuristics — 8 Iron Rules for This Environment</span><span class="card-tag tag-risk">RULES</span></div>
+      <div class="heuristic-list">
+        <div class="heuristic"><span class="h-num">1</span><span class="h-text"><strong>Long TTF vol, not just direction.</strong> Inverted curve = poor merchant incentive to inject. Volatility will not mean-revert while storage &lt; 35%.</span></div>
+        <div class="heuristic"><span class="h-num">2</span><span class="h-text"><strong>Hydro/Nuclear over gas-peakers.</strong> Verbund &amp; CEZ are structurally short energy cost. Windfall persists until regulation bites.</span></div>
+        <div class="heuristic"><span class="h-num">3</span><span class="h-text"><strong>Avoid fixed-cost industrial names with EUR exposure.</strong> voestalpine, KGHM: cost shock + weak DE demand = double squeeze.</span></div>
+        <div class="heuristic"><span class="h-num">4</span><span class="h-text"><strong>Monitor 5y5y breakeven weekly.</strong> Above 2.5% = ECB credibility rupture. That triggers EM CEE repricing. Set alert.</span></div>
+        <div class="heuristic"><span class="h-num">5</span><span class="h-text"><strong>BUX is MOL + OTP.</strong> In Scenario I and II both benefit. In III: HUF crashes and erases local returns for EUR-based PMs.</span></div>
+        <div class="heuristic"><span class="h-num">6</span><span class="h-text"><strong>Banks: short AT floating-rate mortgage risk.</strong> If ECB hikes 50bp, AT household debt service ratio spikes. Erste NIM vs NPL is the trade.</span></div>
+        <div class="heuristic"><span class="h-num">7</span><span class="h-text"><strong>Storage weekly injection data (AGSI) is a leading indicator.</strong> Three consecutive weeks of below-seasonal injection = escalate to Scenario III probability.</span></div>
+        <div class="heuristic"><span class="h-num">8</span><span class="h-text"><strong>Geopolitical tripwire: Strait of Hormuz cargo data.</strong> Tanker tracking (Kpler/Vortexa) 72h lag. Any routing change through Cape = 4–6 week LNG supply delay to EU.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: WATCH LIST ═══════ -->
+<div class="page" id="page-watch">
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-header"><span class="card-title">Priority Watch Factors — Desk Alert Register</span><span class="card-tag tag-risk">ALERTS</span></div>
+    <div class="watch-grid">
+      <div class="watch-item red"><div class="watch-title">🔴 AGSI Storage Weekly Fill</div><div class="watch-desc">Germany below 21%. Three consecutive below-seasonal injection weeks triggers Scenario III escalation. Monitor: Thursday AGSI release.</div><div class="watch-date">Weekly — Every Thursday</div></div>
+      <div class="watch-item red"><div class="watch-title">🔴 Hormuz Tanker Traffic</div><div class="watch-desc">Kpler/Vortexa LNG flows through Strait. Any 20%+ diversion triggers TTF +€10–15/MWh within 5 trading days.</div><div class="watch-date">Daily — Kpler feed</div></div>
+      <div class="watch-item red"><div class="watch-title">🔴 ECB Inflation Guidance</div><div class="watch-desc">If Lagarde speech pivots to "energy shock" language: 5y5y check. Markets already pricing 40bp hike by Dec 2026.</div><div class="watch-date">Next: Apr 17 2026 ECB meet</div></div>
+      <div class="watch-item orange"><div class="watch-title">🟠 Hungary Gas Price Liberalisation</div><div class="watch-desc">MVM cap removal risk Q3. Would add ~3pp to CPI directly. MNB would be forced to pause easing. HUF shock.</div><div class="watch-date">Q3 2026 budget revision</div></div>
+      <div class="watch-item orange"><div class="watch-title">🟠 Norway Maintenance Season</div><div class="watch-desc">Scheduled Troll/Sleipner maintenance Q2. Unplanned extension = 6 bcm/month shortfall. Direct TTF +€6–10.</div><div class="watch-date">Apr–Jun 2026</div></div>
+      <div class="watch-item orange"><div class="watch-title">🟠 Austrian Wage Round Results</div><div class="watch-desc">ÖGB spring 2026 wage negotiations. +6% floor demand. Outcomes feed directly into service CPI and AT rate risk.</div><div class="watch-date">Apr–May 2026</div></div>
+      <div class="watch-item amber"><div class="watch-title">🟡 EU Emergency Storage Regulation</div><div class="watch-desc">If average EU storage &lt;25% by May 1, EC triggers mandatory injection protocol. Distorts summer forward curve. Watch forward M+3.</div><div class="watch-date">May 1 2026 trigger date</div></div>
+      <div class="watch-item amber"><div class="watch-title">🟡 Polish Rate Decision (NBP)</div><div class="watch-desc">Cut 50bp Mar 5. Next meeting May 7. CPI at 4.8%: if no further easing, PLN rally, WIG20 banks re-rate.</div><div class="watch-date">May 7 2026 NBP meet</div></div>
+      <div class="watch-item amber"><div class="watch-title">🟡 Czech Industrial Production</div><div class="watch-desc">Feb IP print Apr 15. Auto sector energy cost + German demand weakness = leading indicator for PX mid-caps.</div><div class="watch-date">Apr 15 2026</div></div>
+      <div class="watch-item green"><div class="watch-title">🟢 US LNG Cargo Dispatch</div><div class="watch-desc">Sabine Pass, Corpus Christi, Freeport utilisation rates. If US-EU LNG deliveries stay &gt;50 bcm/month, tightness eases.</div><div class="watch-date">Weekly DOE/EIA</div></div>
+      <div class="watch-item green"><div class="watch-title">🟢 Renewables Build Rate (EU)</div><div class="watch-desc">Solar/wind additions reducing gas peaker dependency. If 2026 adds &gt;90 GW renewable, demand for gas drops structurally.</div><div class="watch-date">ENTSO-E monthly</div></div>
+      <div class="watch-item green"><div class="watch-title">🟢 CEZ Nuclear Fleet Uptime</div><div class="watch-desc">Dukovany + Temelin running at 85%+ = Czech power independence. Any outage adds 2–3% to PX power costs.</div><div class="watch-date">CEZ daily operational</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Data Sources & Methodology</span></div>
+    <div class="grid-3" style="font-size:11px;gap:.75rem;margin-top:.25rem">
+      <div>
+        <div class="section-head">Energy Data</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.3rem">
+          <li>• AGSI+ (Aggregated Gas Storage Inventory) — weekly</li>
+          <li>• ICE/Intercontinental Exchange — TTF futures</li>
+          <li>• ENTSO-G — gas transmission flows</li>
+          <li>• TradingEconomics — price series Mar 17 2026</li>
+          <li>• IEA Gas Market Report Q1 2026</li>
+          <li>• Reuters: Germany storage Jan 29 2026</li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-head">Macro / Inflation</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.3rem">
+          <li>• Eurostat HICP flash releases Dec 2025</li>
+          <li>• Statistics Austria Jan 2026</li>
+          <li>• Erste Group Research Mar 12 2026</li>
+          <li>• ECB Economic Bulletin Jan 2026</li>
+          <li>• ING CEE Macro Outlook Jan 2026</li>
+          <li>• NBP, MNB, CNB press releases</li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-head">Equities & Market</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.3rem">
+          <li>• Bloomberg consensus (Mar 17 2026)</li>
+          <li>• ATX fact sheet / Vienna Stock Exchange</li>
+          <li>• Budapest Stock Exchange BUX data</li>
+          <li>• Warsaw GPW WIG20 data</li>
+          <li>• Prague Stock Exchange PX data</li>
+          <li>• Erste Equity Research sector reports</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footnote" style="margin-top:1rem">⚠ All YTD figures, price levels and forecasts as of 17 March 2026. Index weights and constituent data from latest available index reviews. Scenarios are proprietary desk views — not investment advice. This dashboard is for internal desk use by institutional market participants.</div>
+  </div>
+</div>
+
+<script>
+// ─── Theme ───────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const h=document.documentElement;
+  const cur=h.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  h.setAttribute('data-theme',next);
+  document.querySelector('.theme-toggle').innerHTML=next==='dark'
+    ?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+    :'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  // Redraw charts on theme change
+  setTimeout(()=>drawAllCharts(),50);
+}
+// ─── Navigation ──────────────────────────────────────────────────────────────
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(()=>drawAllCharts(),80);
+}
+
+// ─── Heat Matrix ──────────────────────────────────────────────────────────────
+const heatData=[
+  {c:'Austria',y22:8.6,y23:7.7,y24:3.6,y25avg:3.6,nov25:4.0,y26f:3.1,trend:'▼',driver:'Energy/Services'},
+  {c:'Poland',y22:14.3,y23:11.4,y24:3.8,y25avg:4.8,nov25:4.7,y26f:3.5,trend:'▼',driver:'Food/Wages'},
+  {c:'Hungary',y22:14.5,y23:17.6,y24:3.7,y25avg:3.8,nov25:3.7,y26f:4.5,trend:'▲',driver:'Gas liberalisation'},
+  {c:'Czech Rep.',y22:15.1,y23:10.7,y24:2.4,y25avg:2.6,nov25:2.8,y26f:2.8,trend:'→',driver:'Rates supportive'},
+  {c:'Slovakia',y22:12.1,y23:10.5,y24:3.2,y25avg:3.5,nov25:3.8,y26f:4.2,trend:'▲',driver:'Energy caps ending'},
+  {c:'Romania',y22:13.8,y23:10.4,y24:5.7,y25avg:5.2,nov25:5.1,y26f:4.8,trend:'▼',driver:'Wages/FX'},
+];
+function getHeatColor(v){
+  if(v>=8)return{bg:'rgba(161,44,123,.35)',tc:'#d163a7'};
+  if(v>=5)return{bg:'rgba(161,53,68,.3)',tc:'#dd6974'};
+  if(v>=3.5)return{bg:'rgba(218,113,1,.25)',tc:'#fdab43'};
+  if(v>=2.5)return{bg:'rgba(209,153,0,.2)',tc:'#e8af34'};
+  return{bg:'rgba(67,122,34,.2)',tc:'#6daa45'};
+}
+function buildHeat(){
+  const tb=document.getElementById('heatBody');
+  if(!tb)return;
+  heatData.forEach(r=>{
+    const vals=[r.y22,r.y23,r.y24,r.y25avg,r.nov25,r.y26f];
+    const cells=vals.map(v=>{const h=getHeatColor(v);return`<td class="mono" style="background:${h.bg};color:${h.tc}">${v.toFixed(1)}%</td>`;}).join('');
+    const trendCol=r.trend==='▲'?'var(--err)':r.trend==='▼'?'var(--success)':'var(--muted)';
+    tb.innerHTML+=`<tr><td class="country">${r.c}</td>${cells}<td style="color:${trendCol};font-weight:700">${r.trend}</td><td style="font-size:10px;color:var(--muted)">${r.driver}</td></tr>`;
+  });
+}
+buildHeat();
+
+// ─── Chart helpers ─────────────────────────────────────────────────────────────
+function getStyle(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function col(v){return getStyle(v)}
+let chartsDrawn=false;
+function drawAllCharts(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gridC=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  const textC=isDark?'#797876':'#7a7974';
+  Chart.defaults.color=textC;
+  Chart.defaults.borderColor=gridC;
+
+  drawTTF(gridC,textC);
+  drawRates(gridC,textC);
+  drawCPI(gridC,textC);
+  drawComp(gridC,textC);
+  drawExpect(gridC,textC);
+  drawMultiplier(gridC,textC);
+  drawMerit(gridC,textC);
+  drawSectorInt(gridC,textC);
+  drawIndexPerf(gridC,textC);
+  drawSectorTilt(gridC,textC);
+  drawScenario();
+  drawForward(gridC,textC);
+  drawDependency(gridC,textC);
+  drawBills(gridC,textC);
+  drawEnergyIndex(gridC,textC);
+  chartsDrawn=true;
+}
+
+// Destroy existing chart if any
+function getChart(id){
+  const el=document.getElementById(id);
+  if(!el)return null;
+  const ex=Chart.getChart(el);
+  if(ex)ex.destroy();
+  return el;
+}
+
+function drawTTF(g,t){
+  const el=getChart('ttfChart');if(!el)return;
+  new Chart(el,{type:'line',data:{
+    labels:['Jan 21','Jul 21','Jan 22','Jul 22','Jan 23','Jul 23','Jan 24','Jul 24','Jan 25','Jul 25','Jan 26','Mar 26'],
+    datasets:[{label:'TTF EUR/MWh',data:[18,42,88,178,68,30,28,35,42,48,38,52],borderColor:'#fdab43',backgroundColor:'rgba(253,171,67,.08)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>'€'+v}}}}});
+}
+function drawRates(g,t){
+  const el=getChart('ratesChart');if(!el)return;
+  new Chart(el,{type:'bar',data:{
+    labels:['ECB','Poland','Hungary','Czech Rep.','Romania'],
+    datasets:[{label:'Policy Rate %',data:[2.0,5.25,6.5,3.75,6.5],backgroundColor:['#4f98a3','#6daa45','#fdab43','#5591c7','#d163a7'],borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>v+'%'},min:0,max:8}}}});
+}
+function drawCPI(g,t){
+  const el=getChart('cpiChart');if(!el)return;
+  new Chart(el,{type:'line',data:{
+    labels:['2020','2021','2022','2023','2024','2025A','2026F'],
+    datasets:[
+      {label:'Austria',data:[1.4,2.8,8.6,7.7,3.6,3.6,3.1],borderColor:'#4f98a3',tension:.4,pointRadius:3,borderWidth:2},
+      {label:'Poland',data:[3.7,5.1,14.3,11.4,3.8,4.8,3.5],borderColor:'#6daa45',tension:.4,pointRadius:3,borderWidth:2},
+      {label:'Hungary',data:[3.3,5.1,14.5,17.6,3.7,3.8,4.5],borderColor:'#fdab43',tension:.4,pointRadius:3,borderWidth:2},
+      {label:'Czech',data:[3.2,3.8,15.1,10.7,2.4,2.6,2.8],borderColor:'#5591c7',tension:.4,pointRadius:3,borderWidth:2},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:10}}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>v+'%'}}}}});
+}
+function drawComp(g,t){
+  const el=getChart('compChart');if(!el)return;
+  new Chart(el,{type:'bar',data:{
+    labels:['Austria','Poland','Hungary','Czech','Slovakia','Romania'],
+    datasets:[
+      {label:'Energy',data:[1.1,0.8,0.6,0.4,0.9,1.2],backgroundColor:'#fdab43',stack:'s'},
+      {label:'Food',data:[0.8,1.2,0.7,0.3,0.8,1.4],backgroundColor:'#e8af34',stack:'s'},
+      {label:'Services',data:[1.4,1.6,1.8,1.2,1.0,1.8],backgroundColor:'#4f98a3',stack:'s'},
+      {label:'Goods (excl food)',data:[0.3,1.2,0.7,0.7,1.0,0.8],backgroundColor:'#5591c7',stack:'s'},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{x:{grid:{color:g},stacked:true},y:{grid:{color:g},stacked:true,ticks:{callback:v=>v+'pp'}}}}});
+}
+function drawExpect(g,t){
+  const el=getChart('expectChart');if(!el)return;
+  new Chart(el,{type:'line',data:{
+    labels:['Jan 24','Apr 24','Jul 24','Oct 24','Jan 25','Apr 25','Jul 25','Oct 25','Jan 26','Feb 26','Mar 26'],
+    datasets:[
+      {label:'EUR 5y5y Swap',data:[2.28,2.31,2.19,2.22,2.25,2.18,2.11,2.09,2.10,2.31,2.45],borderColor:'#d163a7',tension:.4,borderWidth:2,pointRadius:2},
+      {label:'Mkt Implied ECB YE-26',data:[2.1,2.2,2.15,2.0,2.0,2.0,2.0,2.0,2.0,2.25,2.40],borderColor:'#fdab43',tension:.4,borderWidth:2,pointRadius:2,borderDash:[5,3]},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{x:{grid:{color:g}},y:{grid:{color:g},min:1.8,max:2.8,ticks:{callback:v=>v.toFixed(2)+'%'}}}}});
+}
+function drawMultiplier(g,t){
+  const el=getChart('multiplierChart');if(!el)return;
+  const labs=['Ammonia/Fertiliser','Glass','Ceramics/Cement','Aluminium Smelting','Chemicals (bulk)','Paper/Pulp','Steel EAF','Food Processing','District Heat','Automotive'];
+  const gasShare=[75,50,45,40,38,32,28,15,60,8];
+  const costImpact=gasShare.map(s=>+(s*0.65/100*100).toFixed(1));
+  const colors=['#d163a7','#d163a7','#fdab43','#fdab43','#fdab43','#e8af34','#e8af34','#6daa45','#d163a7','#6daa45'];
+  new Chart(el,{type:'bar',data:{
+    labels:labs,
+    datasets:[
+      {label:'Gas as % of Cost',data:gasShare,backgroundColor:colors.map(c=>c+'99'),borderColor:colors,borderWidth:1,borderRadius:4,yAxisID:'y'},
+      {label:'Cost Impact (+65% TTF)',data:costImpact,backgroundColor:colors.map(c=>c+'44'),borderColor:colors.map(c=>c+'88'),borderWidth:1,borderRadius:4,type:'line',yAxisID:'y2',tension:.4,pointRadius:4}
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{x:{grid:{color:g}},y:{grid:{color:g},title:{display:true,text:'Gas % of Prod Cost'},ticks:{callback:v=>v+'%'}},y2:{position:'right',grid:{display:false},title:{display:true,text:'Cost Impact %'},ticks:{callback:v=>'+'+v+'%'}}}}});
+}
+function drawMerit(g,t){
+  const el=getChart('meritChart');if(!el)return;
+  new Chart(el,{type:'bar',data:{
+    labels:['Nuclear','Lignite','Hard Coal','Hydro','Gas CCGT','Gas Peaker','Oil'],
+    datasets:[{label:'Marginal Cost €/MWh',data:[12,22,40,5,65,85,95],backgroundColor:['#4f98a3','#7a7974','#a86fdf','#5591c7','#fdab43','#d163a7','#dd6974'],borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>'€'+v}}}}});
+}
+function drawSectorInt(g,t){
+  const el=getChart('sectorIntChart');if(!el)return;
+  new Chart(el,{type:'radar',data:{
+    labels:['Gas Intensity','AT Exposure','PL Exposure','HU Exposure','CZ Exposure','Regulatory Risk'],
+    datasets:[
+      {label:'Chemicals',data:[90,75,80,85,75,60],borderColor:'#d163a7',backgroundColor:'rgba(161,44,123,.1)',pointRadius:3,borderWidth:2},
+      {label:'Steel/Metals',data:[55,50,80,55,55,40],borderColor:'#fdab43',backgroundColor:'rgba(253,171,67,.08)',pointRadius:3,borderWidth:2},
+      {label:'Utilities',data:[60,85,55,80,90,75],borderColor:'#6daa45',backgroundColor:'rgba(109,170,69,.08)',pointRadius:3,borderWidth:2},
+      {label:'Banks',data:[15,70,60,75,65,55],borderColor:'#5591c7',backgroundColor:'rgba(85,145,199,.08)',pointRadius:3,borderWidth:2},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{r:{grid:{color:g},pointLabels:{color:t,font:{size:9}},ticks:{display:false},min:0,max:100}}}});
+}
+function drawIndexPerf(g,t){
+  const el=getChart('indexPerfChart');if(!el)return;
+  new Chart(el,{type:'bar',data:{
+    labels:['ATX (Austria)','WIG20 (Poland)','BUX (Hungary)','PX (Prague)','DAX (Germany)','EURO STOXX 50'],
+    datasets:[
+      {label:'YTD 2026 %',data:[3.2,1.8,8.4,9.1,-2.3,1.1],backgroundColor:v=>v.raw>=0?'rgba(109,170,69,.7)':'rgba(161,44,123,.7)',borderColor:v=>v.raw>=0?'#6daa45':'#d163a7',borderWidth:1,borderRadius:4},
+      {label:'Full Year 2025 %',data:[9.5,5.8,40.2,14.3,18.7,9.2],backgroundColor:'rgba(85,145,199,.3)',borderColor:'#5591c7',borderWidth:1,borderRadius:4}
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>v+'%'}}}}});
+}
+function drawSectorTilt(g,t){
+  const el=getChart('sectorTiltChart');if(!el)return;
+  new Chart(el,{type:'doughnut',data:{
+    labels:['Financials','Energy','Utilities','Industrials','Consumer','Materials','Telecom','Healthcare'],
+    datasets:[{
+      label:'ATX + CEE avg sector weight %',
+      data:[38,16,14,10,9,7,4,2],
+      backgroundColor:['#5591c7','#fdab43','#6daa45','#a86fdf','#e8af34','#d163a7','#4f98a3','#dd6974'],
+      borderWidth:1,borderColor:'var(--surface)'
+    }]
+  },options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:10,padding:6,font:{size:10}}}}}});
+}
+function drawScenario(){
+  const el=getChart('scenarioChart');if(!el)return;
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const gridC=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  new Chart(el,{type:'radar',data:{
+    labels:['CEE GDP Growth','Inflation Control','Financial Stability','Equity Returns','FX Stability','Fiscal Space'],
+    datasets:[
+      {label:'Scenario I (Controlled)',data:[80,85,90,85,80,75],borderColor:'#6daa45',backgroundColor:'rgba(109,170,69,.15)',pointRadius:3,borderWidth:2},
+      {label:'Scenario II (Squeeze)',data:[50,45,60,50,55,45],borderColor:'#fdab43',backgroundColor:'rgba(253,171,67,.12)',pointRadius:3,borderWidth:2},
+      {label:'Scenario III (Rupture)',data:[15,10,20,10,20,15],borderColor:'#d163a7',backgroundColor:'rgba(161,44,123,.12)',pointRadius:3,borderWidth:2},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{r:{grid:{color:gridC},pointLabels:{color:isDark?'#797876':'#7a7974',font:{size:9}},ticks:{display:false},min:0,max:100}}}});
+}
+function drawForward(g,t){
+  const el=getChart('forwardChart');if(!el)return;
+  new Chart(el,{type:'line',data:{
+    labels:['Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26','Mar 27'],
+    datasets:[{label:'TTF Forward €/MWh',data:[52,54,56,53,50,48,46,45,46,44],borderColor:'#fdab43',backgroundColor:'rgba(253,171,67,.1)',fill:true,tension:.4,pointRadius:3,borderWidth:2}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},annotation:{}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>'€'+v},min:35,max:65}}}});
+}
+function drawDependency(g,t){
+  const el=getChart('dependencyChart');if(!el)return;
+  new Chart(el,{type:'bar',data:{
+    labels:['Slovakia','Hungary','Austria','Czech Rep.','Poland','Romania'],
+    datasets:[{label:'Gas import dependency %',data:[82,68,62,55,45,30],backgroundColor:['#d163a7','#fdab43','#e8af34','#4f98a3','#6daa45','#6daa45'],borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>v+'%'},min:0,max:100}}}});
+}
+function drawBills(g,t){
+  const el=getChart('billsChart');if(!el)return;
+  new Chart(el,{type:'bar',data:{
+    labels:['Romania','Slovakia*','Hungary*','Czech Rep.','Poland','Austria'],
+    datasets:[{label:'Energy bills % disposable income',data:[8.2,5.1,4.8,5.6,6.4,7.1],backgroundColor:['#d163a7','#e8af34','#e8af34','#fdab43','#fdab43','#fdab43'],borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:g}},y:{grid:{color:g},ticks:{callback:v=>v+'%'},min:0,max:12}}}});
+}
+function drawEnergyIndex(g,t){
+  const el=getChart('energyIndexChart');if(!el)return;
+  new Chart(el,{type:'line',data:{
+    labels:['Jan 24','Mar 24','Jun 24','Sep 24','Dec 24','Feb 25','May 25','Aug 25','Nov 25','Jan 26','Feb 26','Mar 26'],
+    datasets:[
+      {label:'TTF (indexed)',data:[100,94,88,95,98,102,105,112,118,105,145,168],borderColor:'#fdab43',tension:.4,borderWidth:2,pointRadius:0},
+      {label:'Brent (indexed)',data:[100,103,105,102,95,98,103,108,115,112,152,168],borderColor:'#5591c7',tension:.4,borderWidth:2,pointRadius:0},
+      {label:'EU Power (indexed)',data:[100,98,92,95,97,100,104,110,115,108,140,155],borderColor:'#6daa45',tension:.4,borderWidth:2,pointRadius:0,borderDash:[5,3]},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:8}}},scales:{x:{grid:{color:g}},y:{grid:{color:g},title:{display:true,text:'Index (100=Jan 24)'}}}}});
+}
+
+// Draw on load
+window.addEventListener('load',()=>{setTimeout(drawAllCharts,100)});
+</script>
+</body>
+</html>
